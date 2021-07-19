@@ -228,9 +228,12 @@ class QuantOps:
           half_shift=False)  # disable half_shift for fp quantization
     else:
       initial_bounds = bounds
+      # We set bounds = -1 to indicate no quantization.
+      # TODO(shivaniagrawal): Move away from the hack of setting bound as -1.
       bounds = jnp.asarray(bounds, SCALE_DTYPE)
       if not DISABLE_EPSILON_IN_SCALE_FUN_FOR_TESTING:
-        bounds += jnp.finfo(SCALE_DTYPE).eps  # to avoid log2(0)
+        # to avoid log2(0)
+        bounds = jnp.abs(bounds) + jnp.finfo(SCALE_DTYPE).eps
       scale = jnp.exp2(-jnp.floor(jnp.log2(bounds)))  # Scale to unit binade.
       # NOTE: stop_gradient is needed here to prevent gradient flow through
       # scale when scale is not a constant, but computed as a function of
